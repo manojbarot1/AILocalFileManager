@@ -76,11 +76,11 @@ class AIEngine:
     async def _query_ollama(self, prompt: str, system_prompt: str = "") -> str:
         """
         Query Ollama with retry logic
-        
-        Different from LlamaFS: uses structured prompts for consistent JSON output
+        Uses the correct /api/generate endpoint with proper parameters
         """
         try:
             async with httpx.AsyncClient(timeout=float(self.timeout)) as client:
+                # Use /api/generate endpoint (correct Ollama API)
                 response = await client.post(
                     f"{self.base_url}/api/generate",
                     json={
@@ -96,10 +96,14 @@ class AIEngine:
                     timeout=self.timeout,
                 )
                 
+                logger.info(f"Ollama request to {self.base_url}/api/generate - Status: {response.status_code}")
+                
                 if response.status_code == 200:
                     data = response.json()
                     return data.get("response", "").strip()
                 else:
+                    logger.error(f"Ollama API returned {response.status_code}")
+                    logger.error(f"Response: {response.text}")
                     raise Exception(f"Ollama returned {response.status_code}")
         
         except asyncio.TimeoutError:
@@ -138,7 +142,7 @@ FILE DETAILS:
 - Last Modified: {modified_date.isoformat()}
 - Content: {content_summary}
 
-Respond in JSON format with:
+Respond ONLY with a JSON object (no markdown, no backticks):
 {{
   "suggested_name": "descriptive_filename.ext",
   "suggested_category": "category_name",
@@ -146,15 +150,11 @@ Respond in JSON format with:
   "confidence": 0.95,
   "reasoning": "brief explanation"
 }}
-
-Ensure the suggested name is:
-- Descriptive but concise
-- Following naming conventions for the file type
-- Including relevant metadata (date, version, etc. if applicable)
 """
         
         try:
             response = await self._query_ollama(prompt, system_prompt)
+            logger.info(f"Ollama response for {filename}: {response[:100]}...")
             
             # Parse JSON response
             suggestion = self._parse_json_response(response)
@@ -194,7 +194,7 @@ Ensure the suggested name is:
 FILES:
 {file_list}
 
-Respond in JSON format:
+Respond ONLY with a JSON object (no markdown, no backticks):
 {{
   "groups": [
     {{
@@ -230,7 +230,7 @@ Respond in JSON format:
         base_prompt = """You are an expert file organization assistant. 
 Your job is to suggest optimal file naming and organization strategies.
 Focus on clarity, discoverability, and following industry conventions.
-Always respond with valid JSON."""
+IMPORTANT: Always respond with ONLY a valid JSON object. No markdown, no backticks, no explanations outside the JSON."""
         
         type_specific = {
             "image": "For images, include relevant metadata like date, subject, resolution in the name.",

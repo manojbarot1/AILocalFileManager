@@ -1,188 +1,141 @@
-# Quick Start Guide - AILocalFileManager
+# ⚡ Quick Start Guide
 
-Get up and running in 5 minutes!
+Get AILocalFileManager running in 5 minutes!
 
 ## Prerequisites
+- Python 3.8+
+- Node.js 16+
+- Git
+- (Optional) Ollama for local AI
 
-- Python 3.11+
-- Node.js 18+
-- Ollama installed
-- 4GB+ RAM
+## Installation (3 Steps)
 
-## Installation (5 minutes)
-
-### Step 1: Clone & Setup (1 min)
+### Step 1: Clone & Setup Backend
 ```bash
-git clone https://github.com/yourusername/AILocalFileManager.git
+git clone https://github.com/manojbarot1/AILocalFileManager.git
 cd AILocalFileManager
 
-# Backend setup
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
 
-# Frontend setup
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
+```
+
+**Terminal output should show:**
+```
+INFO:     Uvicorn running on http://127.0.0.1:8000
+```
+
+### Step 2: Setup Frontend (New Terminal)
+```bash
 cd frontend
 npm install
-cd ..
-```
-
-### Step 2: Configure (1 min)
-```bash
-cp .env.example .env
-# Edit .env with your settings (optional - defaults work fine)
-```
-
-### Step 3: Start Ollama (1 min)
-```bash
-# Install Ollama from https://ollama.ai
-# Pull the model:
-ollama pull neural-chat:latest
-
-# Start Ollama server (runs in background on port 11434)
-ollama serve
-```
-
-### Step 4: Start Backend (1 min)
-```bash
-# In a new terminal
-python -m uvicorn backend.app.main:app --reload --port 8000
-# ✅ Backend running on http://localhost:8000
-```
-
-### Step 5: Start Frontend (1 min)
-```bash
-# In another terminal
-cd frontend
 npm run dev
-# ✅ Frontend running on http://localhost:5173
 ```
 
-**You're done!** 🎉
-
-## First Use
-
-1. **Open UI**: Go to http://localhost:5173
-2. **Select Directory**: Click "Select Directory" in Explorer tab
-3. **Choose Folder**: Pick any folder (start small like ~/Documents)
-4. **Analyze**: Click "Analyze Files"
-5. **Review**: Check suggestions with confidence scores
-6. **Preview**: See what changes would be made
-7. **Apply**: Click "Apply Organization"
-8. **Undo if needed**: Use history to revert changes
-
-## Common Tasks
-
-### Analyze Downloads Folder
-```bash
-curl -X POST http://localhost:8000/api/v1/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"path": "~/Downloads", "recursive": true}'
+**Terminal output should show:**
+```
+➜  Local: http://localhost:5173/
 ```
 
-### Check AI Health
+### Step 3: Start Ollama (Optional - New Terminal)
 ```bash
-curl http://localhost:8000/api/v1/analysis/health
+# If using Ollama for local AI
+ollama serve
+
+# In another terminal, pull a model
+ollama pull llama2
 ```
 
-### Build for Production
-```bash
-# Backend
-python -m PyInstaller --onefile backend/app/main.py
+## First Run
 
-# Frontend (Electron)
-cd frontend
-npm run electron-build
+1. **Open** http://localhost:5173 in browser
+2. **Select AI Provider**: "Ollama Local" or your API key
+3. **Select Model**: Auto-detected for Ollama
+4. **Pick Folder**: Choose folder to analyze
+5. **Click** "Start Analysis"
+6. **Watch** real-time progress
+7. **Go to** Suggestions tab
+8. **Click** "Add Rule" to create organization rule
+9. **Click** "Apply" to move files
+
+## Example: Organize .sh Files
+
+```bash
+# Create test files
+mkdir ~/test-folder
+touch ~/test-folder/{script1,script2,script3}.sh
+
+# In App:
+# 1. Select ~/test-folder
+# 2. Run Analysis
+# 3. Go to Suggestions → Add Rule
+# 4. Type: File Extensions
+# 5. Extensions: .sh
+# 6. Target: Scripts
+# 7. Click Create Rule
+# 8. Run analysis again
+# 9. Click Apply
+# 10. Files move to ~/test-folder/Scripts/
 ```
 
 ## Troubleshooting
 
-### Issue: "Ollama connection refused"
+### Backend won't start
 ```bash
-# Make sure Ollama is running
+# Check if port 8000 is free
+lsof -i :8000
+
+# Kill process if needed
+kill -9 <PID>
+
+# Or use different port
+python -m uvicorn app.main:app --reload --port 8001
+```
+
+### Frontend won't load
+```bash
+# Clear cache
+rm -rf node_modules package-lock.json
+npm install
+npm run dev
+
+# Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
+```
+
+### Ollama not found
+```bash
+# Start Ollama
 ollama serve
 
-# Or check if it's already running
+# In new terminal, pull model
+ollama pull llama2
+
+# Verify
 curl http://localhost:11434/api/tags
 ```
 
-### Issue: "Model not found"
-```bash
-# Pull the model
-ollama pull neural-chat:latest
-```
-
-### Issue: "Port already in use"
-```bash
-# Change port in .env
-BACKEND_PORT=8001
-```
-
-### Issue: Analysis is slow
-- Normal! First file takes time
-- Ollama is running on your CPU
-- Get a GPU for faster processing
-
 ## Next Steps
 
-1. **Read the docs**: Check out ARCHITECTURE.md
-2. **Create rules**: Define custom organization rules
-3. **Explore insights**: See organization statistics
-4. **Check settings**: Customize behavior in .env
-5. **Join community**: Star the project, contribute!
+- 📖 Read [Full Setup Guide](./SETUP.md)
+- 📚 Check [Main README](./README.md)
+- 🐛 Report [Issues](https://github.com/manojbarot1/AILocalFileManager/issues)
+- 💬 Join [Discussions](https://github.com/manojbarot1/AILocalFileManager/discussions)
 
-## Getting Help
-
-- 📚 [Full Documentation](README.md)
-- 🏗️ [Architecture Guide](ARCHITECTURE.md)
-- 🔄 [Comparison with LlamaFS](COMPARISON.md)
-- 📝 [Contributing Guide](CONTRIBUTING.md)
-- 🐛 [Report Issues](https://github.com/yourusername/AILocalFileManager/issues)
-
-## Key Differences from Other Tools
-
-✅ **100% Local** - Everything runs on your machine
-✅ **Confidence Scores** - See how certain the AI is
-✅ **Relationship Detection** - Understands file connections
-✅ **Full Undo Support** - Revert any changes
-✅ **Rule Engine** - Create custom organization rules
-✅ **No Cloud** - Your files, your data
-
-## Performance Tips
-
-1. **Use smaller directories first** - Start with a few files
-2. **Increase BATCH_SIZE** - Process more files in parallel (in .env)
-3. **Close other apps** - Free up RAM for analysis
-4. **SSD recommended** - Much faster than HDD
-5. **GPU optional** - Set up Ollama with GPU for 10x faster
-
-## File Organization Tips
-
-1. **Organize by category, not date** - Easier to find
-2. **Use consistent naming** - AI learns your style
-3. **Create rules** - Automate future organizing
-4. **Review suggestions** - Check confidence scores
-5. **Start small** - Organize one directory first
-
-## Need More Help?
+## Need Help?
 
 ```bash
-# Run test analysis
-python -c "
-import asyncio
-from backend.app.services.analyzer import FileAnalyzer
+# Check backend health
+curl http://localhost:8000/health
 
-async def test():
-    analyzer = FileAnalyzer()
-    analysis = await analyzer.analyze_file('README.md')
-    print(f'Analysis complete: {analysis.suggested_name}')
+# View API docs
+open http://localhost:8000/docs
 
-asyncio.run(test())
-"
+# Check logs
+tail -f /tmp/backend.log
 ```
-
-**Happy organizing!** 🚀
 
 ---
 
-Made with ❤️ by the AILocalFileManager Community
+**🚀 Ready to organize your files with AI!**
